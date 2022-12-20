@@ -18,8 +18,7 @@ using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-vector<string>
-split(const std::string& str, const std::string& sep)
+vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;
@@ -38,7 +37,8 @@ split(const std::string& str, const std::string& sep)
 }
 
 // Class that holds a set of integers by storing a sequence of ranges
-class range_set {
+class range_set
+{
 public:
     void insert(ll from, ll to)
     {
@@ -113,10 +113,8 @@ public:
     bool contains(ll value)
     {
         for (auto p : ranges) {
-            if (value < p.first)
-                return false;
-            if (value <= p.second)
-                return true;
+            if (value < p.first) return false;
+            if (value <= p.second) return true;
         }
         return false;
     }
@@ -160,7 +158,8 @@ public:
 };
 
 // A sensor reading
-struct reading {
+struct reading
+{
     ll sx;
     ll sy;
     ll bx;
@@ -230,8 +229,7 @@ int main()
             if (r.any_xrange_at_y(y)) {
                 auto p = r.xrange_at_y(y);
                 rset.remove(p.first, p.second);
-                if (rset.ranges.empty())
-                    break;
+                if (rset.ranges.empty()) break;
             }
         }
         if (!rset.ranges.empty()) {

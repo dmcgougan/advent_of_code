@@ -17,8 +17,8 @@ int main()
     set<pair<ll, ll>> tailTrail1;
     set<pair<ll, ll>> tailTrail9;
 
-    ll x[10] = { 0 };
-    ll y[10] = { 0 };
+    ll x[10] = {0};
+    ll y[10] = {0};
 
     tailTrail1.insert(make_pair(0, 0));
     tailTrail9.insert(make_pair(0, 0));

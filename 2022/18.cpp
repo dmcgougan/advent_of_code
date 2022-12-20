@@ -15,8 +15,7 @@ using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-static vector<string>
-split(const std::string& str, const std::string& sep)
+static vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;
@@ -44,25 +43,20 @@ static set<tuple<ll, ll, ll>> cubes;
 static set<tuple<ll, ll, ll>> exterior_cubes;
 
 // Check if a voxel is solid (contains a cube)
-static bool
-is_solid(ll x, ll y, ll z)
-{
-    return cubes.count(make_tuple(x, y, z)) != 0;
-}
+static bool is_solid(ll x, ll y, ll z) { return cubes.count(make_tuple(x, y, z)) != 0; }
 
 // Check if a voxel is exterior (can be reached by water and steam)
-static bool
-is_exterior(ll x, ll y, ll z)
+static bool is_exterior(ll x, ll y, ll z)
 {
     // Check if the voxel is either outside the world cube or in the
     // exterior_cubes set
-    return x < min_x || x > max_x || y < min_y || y > max_y || z < min_z || z > max_z || exterior_cubes.count(make_tuple(x, y, z)) != 0;
+    return x < min_x || x > max_x || y < min_y || y > max_y || z < min_z || z > max_z ||
+        exterior_cubes.count(make_tuple(x, y, z)) != 0;
 }
 
 // Recursive depth-first search (DFS) to find all exterior voxels in the world
 // cube
-static void
-traverse(ll x, ll y, ll z)
+static void traverse(ll x, ll y, ll z)
 {
     exterior_cubes.insert(make_tuple(x, y, z));
     if (x - 1 >= min_x && !is_solid(x - 1, y, z) && !exterior_cubes.count(make_tuple(x - 1, y, z)))
@@ -80,15 +74,13 @@ traverse(ll x, ll y, ll z)
 }
 
 // Set up the DFS and execute
-static void
-find_exterior()
+static void find_exterior()
 {
     // Find an exterior voxel within the world cube
     // Go along an edge since those voxels must be exterior if they are not solid
     ll x;
     for (x = min_x; x <= max_x; ++x) {
-        if (!is_solid(x, 0, 0))
-            break;
+        if (!is_solid(x, 0, 0)) break;
     }
     assert(x <= max_x);
     traverse(x, 0, 0);
@@ -117,18 +109,12 @@ int main()
     // Part 1 area
     ll p1_area = 0;
     for (auto [x, y, z] : cubes) {
-        if (!is_solid(x + 1, y, z))
-            p1_area++;
-        if (!is_solid(x - 1, y, z))
-            p1_area++;
-        if (!is_solid(x, y + 1, z))
-            p1_area++;
-        if (!is_solid(x, y - 1, z))
-            p1_area++;
-        if (!is_solid(x, y, z + 1))
-            p1_area++;
-        if (!is_solid(x, y, z - 1))
-            p1_area++;
+        if (!is_solid(x + 1, y, z)) p1_area++;
+        if (!is_solid(x - 1, y, z)) p1_area++;
+        if (!is_solid(x, y + 1, z)) p1_area++;
+        if (!is_solid(x, y - 1, z)) p1_area++;
+        if (!is_solid(x, y, z + 1)) p1_area++;
+        if (!is_solid(x, y, z - 1)) p1_area++;
     }
 
     // Traverse the world and find all exterior parts of it
@@ -137,18 +123,12 @@ int main()
     // Part 2 area
     ll p2_area = 0;
     for (auto [x, y, z] : cubes) {
-        if (is_exterior(x + 1, y, z))
-            p2_area++;
-        if (is_exterior(x - 1, y, z))
-            p2_area++;
-        if (is_exterior(x, y + 1, z))
-            p2_area++;
-        if (is_exterior(x, y - 1, z))
-            p2_area++;
-        if (is_exterior(x, y, z + 1))
-            p2_area++;
-        if (is_exterior(x, y, z - 1))
-            p2_area++;
+        if (is_exterior(x + 1, y, z)) p2_area++;
+        if (is_exterior(x - 1, y, z)) p2_area++;
+        if (is_exterior(x, y + 1, z)) p2_area++;
+        if (is_exterior(x, y - 1, z)) p2_area++;
+        if (is_exterior(x, y, z + 1)) p2_area++;
+        if (is_exterior(x, y, z - 1)) p2_area++;
     }
 
     // Output

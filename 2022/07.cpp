@@ -11,7 +11,8 @@
 using namespace std;
 using ll = int64_t;
 
-struct directory {
+struct directory
+{
     directory* parent;
     map<string, ll> files;
     map<string, directory> dirs;
@@ -21,8 +22,7 @@ static ll need_to_free;
 static ll p1_size = 0;
 static ll p2_size = 0;
 
-static ll
-sumDirs(directory* dir)
+static ll sumDirs(directory* dir)
 {
     ll size = 0;
     for (auto& d : dir->dirs) {
@@ -43,7 +43,7 @@ sumDirs(directory* dir)
 int main()
 {
     string line;
-    directory root { nullptr };
+    directory root{nullptr};
     directory* cwd = &root;
 
     // Parse input and populate the directory tree
@@ -63,8 +63,7 @@ int main()
                 } else {
                     // Go down one level
                     auto iter = cwd->dirs.find(name);
-                    assert(
-                        iter != cwd->dirs.end()); // assume we never cd into an unseen directory
+                    assert(iter != cwd->dirs.end());  // assume we never cd into an unseen directory
                     cwd = &(*iter).second;
                 }
             }
@@ -87,7 +86,7 @@ int main()
                 auto iter = cwd->dirs.find(name);
                 if (iter == cwd->dirs.end()) {
                     // New directory
-                    cwd->dirs[name] = directory { cwd };
+                    cwd->dirs[name] = directory{cwd};
                 }
             }
         }

@@ -32,8 +32,7 @@ int main()
                 toX = strtol(word.c_str(), &end, 10);
                 toY = strtol(end + 1, nullptr, 10);
                 assert(toX < 1000 && toY < 1000);
-                if (toY > maxY)
-                    maxY = toY;
+                if (toY > maxY) maxY = toY;
                 if (!first) {
                     wall[toX][toY] = 1;
                     if (fromY == toY) {

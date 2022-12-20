@@ -16,8 +16,7 @@ using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-static vector<string>
-split(const std::string& str, const std::string& sep)
+static vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;

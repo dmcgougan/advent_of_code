@@ -10,11 +10,7 @@
 using namespace std;
 using ll = int64_t;
 
-static int
-prio(char c)
-{
-    return c >= 'a' ? c - 'a' + 1 : c - 'A' + 27;
-}
+static int prio(char c) { return c >= 'a' ? c - 'a' + 1 : c - 'A' + 27; }
 
 int main()
 {

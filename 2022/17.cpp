@@ -45,8 +45,8 @@ constexpr uint8_t rocks[5][4] = {
     },
 };
 
-constexpr ll rock_heights[5] = { 1, 3, 3, 4, 2 };
-constexpr ll rock_widths[5] = { 4, 3, 3, 1, 2 };
+constexpr ll rock_heights[5] = {1, 3, 3, 4, 2};
+constexpr ll rock_widths[5] = {4, 3, 3, 1, 2};
 
 // Jet pattern
 string jets;
@@ -56,19 +56,14 @@ static uint8_t chamber[256];
 
 // Chamber indexing; use wrapping indices since we do not need to
 // keep older parts of the chamber around
-static inline uint8_t&
-ch(ll i)
-{
-    return chamber[i & 0xff];
-}
+static inline uint8_t& ch(ll i) { return chamber[i & 0xff]; }
 
 // State
 static ll height = 0;
 static ll jet_ix = 0;
 
 // Hash the top 8 entries of the chamber state
-static ll
-hash_chamber_state()
+static ll hash_chamber_state()
 {
     ll hash = 5381;
 
@@ -80,25 +75,24 @@ hash_chamber_state()
 }
 
 // Check if a rock position has overlap with other rocks
-static inline bool
-has_overlap(ll rock_ix, ll rock_row, ll rock_col)
+static inline bool has_overlap(ll rock_ix, ll rock_row, ll rock_col)
 {
-    return (ch(rock_row + 0) & (rocks[rock_ix][0] >> rock_col)) || (ch(rock_row + 1) & (rocks[rock_ix][1] >> rock_col)) || (ch(rock_row + 2) & (rocks[rock_ix][2] >> rock_col)) || (ch(rock_row + 3) & (rocks[rock_ix][3] >> rock_col));
+    return (ch(rock_row + 0) & (rocks[rock_ix][0] >> rock_col)) ||
+        (ch(rock_row + 1) & (rocks[rock_ix][1] >> rock_col)) ||
+        (ch(rock_row + 2) & (rocks[rock_ix][2] >> rock_col)) ||
+        (ch(rock_row + 3) & (rocks[rock_ix][3] >> rock_col));
 }
 
-static void
-place_rock(ll rock_ix)
+static void place_rock(ll rock_ix)
 {
     // Only check walls; we are above the other rocks
     ll rock_col = 2;
     for (ll i = 0; i < 4; i++) {
         // Jet push
         if (jets[jet_ix] == '<') {
-            if (rock_col > 0)
-                rock_col--;
+            if (rock_col > 0) rock_col--;
         } else {
-            if (rock_col + rock_widths[rock_ix] < 7)
-                rock_col++;
+            if (rock_col + rock_widths[rock_ix] < 7) rock_col++;
         }
         jet_ix = jet_ix + 1 < ll(jets.size()) ? jet_ix + 1 : 0;
     }
@@ -110,10 +104,10 @@ place_rock(ll rock_ix)
 
         // Jet push
         if (jets[jet_ix] == '<') {
-            if (rock_col > 0 && !has_overlap(rock_ix, rock_row, rock_col - 1))
-                rock_col--;
+            if (rock_col > 0 && !has_overlap(rock_ix, rock_row, rock_col - 1)) rock_col--;
         } else {
-            if (rock_col + rock_widths[rock_ix] < 7 && !has_overlap(rock_ix, rock_row, rock_col + 1))
+            if (rock_col + rock_widths[rock_ix] < 7 &&
+                !has_overlap(rock_ix, rock_row, rock_col + 1))
                 rock_col++;
         }
         jet_ix = jet_ix + 1 < ll(jets.size()) ? jet_ix + 1 : 0;

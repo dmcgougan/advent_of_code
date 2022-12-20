@@ -1,23 +1,22 @@
 /*
  * Problem 19, Advent of Code 2022
  * Danjel McGougan
- * 
+ *
  * Uses C++20 features
  */
 
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <map>
 
 using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-static vector<string>
-split(const std::string& str, const std::string& sep)
+static vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;
@@ -36,7 +35,8 @@ split(const std::string& str, const std::string& sep)
 }
 
 // Blueprints with resource costs
-struct blueprint {
+struct blueprint
+{
     ll r_ore_ore;
     ll r_clay_ore;
     ll r_obs_ore;
@@ -47,7 +47,8 @@ struct blueprint {
 };
 
 // Current search state
-struct state {
+struct state
+{
     explicit state(uint8_t minutes) : m(minutes) { }
     auto operator<=>(const state& rhs) const = default;
 

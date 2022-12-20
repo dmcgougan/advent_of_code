@@ -16,7 +16,8 @@
 using namespace std;
 using ll = int64_t;
 
-struct monkey {
+struct monkey
+{
     list<ll> items;
     char op;
     ll value;

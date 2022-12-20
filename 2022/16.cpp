@@ -21,8 +21,7 @@ using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-static vector<string>
-split(const std::string& str, const std::string& sep)
+static vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;
@@ -41,7 +40,8 @@ split(const std::string& str, const std::string& sep)
 }
 
 // Room info
-struct room {
+struct room
+{
     std::string name;
     ll rate = 0;
     bool opened = false;
@@ -54,8 +54,7 @@ static map<std::string, room> rooms;
 
 // Use BFS to find the costs to go to rooms with non-zero valve rates
 // Do this for all rooms in the map
-static void
-calc_costs()
+static void calc_costs()
 {
     deque<pair<room*, ll>> q;
     set<room*> done;
@@ -87,8 +86,7 @@ static ll max_pressure;
 // Simple recursive search. We only simulate the rooms with non-zero valves
 // in them, since it is only there that we need to branch off into different
 // directions of the search tree.
-static void
-part1(room* r, ll steps_left, ll pressure = 0)
+static void part1(room* r, ll steps_left, ll pressure = 0)
 {
     if (pressure > max_pressure) {
         max_pressure = pressure;
@@ -123,8 +121,7 @@ static struct
 // current search direction can not possibly reach a new pressure maximum.
 // Or by employing some clever DP strategy.
 // But it's fast enough to complete in a few seconds, so good enough.
-static void
-part2(ll steps_left, ll pressure = 0)
+static void part2(ll steps_left, ll pressure = 0)
 {
     assert(steps_left > 0);
 
@@ -161,7 +158,8 @@ part2(ll steps_left, ll pressure = 0)
                         state[1].r = dst1;
                         state[1].walking = cost1;
                         part2(steps_left - 1,
-                            pressure + dst0->rate * (steps_left - cost0 - 1) + dst1->rate * (steps_left - cost1 - 1));
+                              pressure + dst0->rate * (steps_left - cost0 - 1) +
+                                  dst1->rate * (steps_left - cost1 - 1));
                         dst0->opened = false;
                         dst1->opened = false;
                     }

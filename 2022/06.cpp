@@ -10,8 +10,7 @@
 using namespace std;
 using ll = int64_t;
 
-static bool
-checkMarker(const vector<char>& marker)
+static bool checkMarker(const vector<char>& marker)
 {
     for (size_t i = 0; i + 1 < marker.size(); i++) {
         for (size_t j = i + 1; j < marker.size(); j++) {

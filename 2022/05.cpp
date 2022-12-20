@@ -13,8 +13,7 @@ using namespace std;
 using ll = int64_t;
 
 // Split a string into a vector of strings based on the specified separator
-static vector<string>
-split(const std::string& str, const std::string& sep)
+static vector<string> split(const std::string& str, const std::string& sep)
 {
     string s = str;
     vector<string> result;
@@ -34,10 +33,11 @@ split(const std::string& str, const std::string& sep)
 
 int main()
 {
-    struct instruction {
+    struct instruction
+    {
         ll count;
-        ll from; // zero-based index
-        ll to; // zero-based index
+        ll from;  // zero-based index
+        ll to;    // zero-based index
     };
     vector<deque<char>> initial_stacks;
     vector<deque<char>> stacks;
@@ -60,7 +60,8 @@ int main()
     while (getline(cin, line)) {
         auto words = split(line, " ");
         assert(words.size() > 5);
-        instructions.push_back(instruction { stoll(words[1]), stoll(words[3]) - 1, stoll(words[5]) - 1 });
+        instructions.push_back(
+            instruction{stoll(words[1]), stoll(words[3]) - 1, stoll(words[5]) - 1});
     }
 
     // Part 1

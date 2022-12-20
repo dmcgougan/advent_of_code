@@ -11,8 +11,7 @@
 using namespace std;
 using ll = int64_t;
 
-static void
-drawPixel(ll& crt_x, ll x)
+static void drawPixel(ll& crt_x, ll x)
 {
     // Draw current pixel
     if (crt_x == x - 1 || crt_x == x || crt_x == x + 1) {
