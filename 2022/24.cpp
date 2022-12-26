@@ -4,10 +4,8 @@
  */
 
 #include <cassert>
-#include <deque>
 #include <iostream>
-#include <map>
-#include <sstream>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -16,30 +14,29 @@ using ll = int64_t;
 
 // Blizzards
 static ll rows, cols;
-static vector<vector<ll>> h_bliz;  // indexed by row
-static vector<vector<ll>> v_bliz;  // indexed by col
+static vector<vector<bool>> bliz_left;
+static vector<vector<bool>> bliz_right;
+static vector<vector<bool>> bliz_up;
+static vector<vector<bool>> bliz_down;
+
+static inline ll mod_neg(ll a, ll b)
+{
+    ll m = a % b;
+    return m >= 0 ? m : m + b;
+}
 
 // Is the given row and column safe at time t?
-static bool is_safe(ll row, ll col, ll t)
+static inline bool is_safe(ll row, ll col, ll t)
 {
-    // Check horizontal blizzards
-    ll n, p;
-    p = (col + cols - (t % cols)) % cols + 1;
-    n = -((col + t) % cols) - 1;
-    for (ll b : h_bliz[row]) {
-        if (b == p || b == n) return false;
-    }
-    // Check vertical blizzards
-    p = (row + rows - (t % rows)) % rows + 1;
-    n = -((row + t) % rows) - 1;
-    for (ll b : v_bliz[col]) {
-        if (b == p || b == n) return false;
-    }
-    return true;
+    return
+        !bliz_left[row][(col + t) % cols] &&
+        !bliz_right[row][mod_neg(col - t, cols)] &&
+        !bliz_up[(row + t) % rows][col] &&
+        !bliz_down[mod_neg(row - t, rows)][col];
 }
 
 // DP memoize
-static map<ll, ll> cache;
+static unordered_map<ll, ll> cache;
 static ll g_min_moves = INT64_MAX;
 
 // Depth-first search going forward
@@ -52,7 +49,7 @@ static ll dfs_f(ll row, ll col, ll t)
     }
     ll min_moves = INT64_MAX;
     // If we already found a better minimum return directly
-    if (t + 1 >= g_min_moves) {
+    if (t + (cols - col - 1) + (rows - row - 1) + 1 >= g_min_moves) {
         return min_moves;
     }
     // Search down and right moves first since they lead to the goal
@@ -87,7 +84,7 @@ static ll dfs_b(ll row, ll col, ll t)
     }
     ll min_moves = INT64_MAX;
     // If we already found a better minimum return directly
-    if (t + 1 >= g_min_moves) {
+    if (t + col + row + 1 >= g_min_moves) {
         return min_moves;
     }
     // Search left and up moves first since they lead to the goal
@@ -130,27 +127,25 @@ int main()
     cols = ll(start_grid[0].size());
 
     // Fill the blizzard vectors
+    bliz_left = vector<vector<bool>>(rows, vector<bool>(cols, false));
+    bliz_right = vector<vector<bool>>(rows, vector<bool>(cols, false));
+    bliz_up = vector<vector<bool>>(rows, vector<bool>(cols, false));
+    bliz_down = vector<vector<bool>>(rows, vector<bool>(cols, false));
     for (ll row = 0; row < rows; ++row) {
-        h_bliz.emplace_back(0);
         for (ll col = 0; col < cols; ++col) {
-            if (row == 0) {
-                v_bliz.emplace_back(0);
-            }
             char c = start_grid[row][col];
-            // Negative values represent blizzards moving in the negative direction
-            // We add one or subtract one to avoid zero
             switch (c) {
             case '<':
-                h_bliz[row].push_back(-col - 1);
+                bliz_left[row][col] = true;
                 break;
             case '>':
-                h_bliz[row].push_back(col + 1);
+                bliz_right[row][col] = true;
                 break;
             case '^':
-                v_bliz[col].push_back(-row - 1);
+                bliz_up[row][col] = true;
                 break;
             case 'v':
-                v_bliz[col].push_back(row + 1);
+                bliz_down[row][col] = true;
                 break;
             default:
                 assert(c == '.');
