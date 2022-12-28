@@ -4,9 +4,10 @@
  */
 
 #include <cassert>
+#include <deque>
 #include <iostream>
-#include <unordered_map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -28,84 +29,87 @@ static inline ll mod_neg(ll a, ll b)
 // Is the given row and column safe at time t?
 static inline bool is_safe(ll row, ll col, ll t)
 {
-    return
-        !bliz_left[row][(col + t) % cols] &&
-        !bliz_right[row][mod_neg(col - t, cols)] &&
-        !bliz_up[(row + t) % rows][col] &&
-        !bliz_down[mod_neg(row - t, rows)][col];
+    return !bliz_left[row][(col + t) % cols] && !bliz_right[row][mod_neg(col - t, cols)] &&
+        !bliz_up[(row + t) % rows][col] && !bliz_down[mod_neg(row - t, rows)][col];
 }
 
-// DP memoize
-static unordered_map<ll, ll> cache;
-static ll g_min_moves = INT64_MAX;
-
-// Depth-first search going forward
-static ll dfs_f(ll row, ll col, ll t)
+static ll search_f(ll start_t)
 {
-    auto iter = cache.find(t * rows * cols + row * cols + col);
-    if (iter != cache.end()) return iter->second;
-    if (row == rows - 1 && col == cols - 1) {
-        return t + 1;
-    }
     ll min_moves = INT64_MAX;
-    // If we already found a better minimum return directly
-    if (t + (cols - col - 1) + (rows - row - 1) + 1 >= g_min_moves) {
-        return min_moves;
+    deque<tuple<ll, ll, ll>> q;
+    unordered_set<ll> seen;
+    q.push_back(make_tuple(-1, 0, start_t));
+    while (!q.empty()) {
+        auto [row, col, t] = q.front();
+        q.pop_front();
+        if (row == rows - 1 && col == cols - 1) {
+            min_moves = min(min_moves, t + 1);
+            continue;
+        }
+        if (t + (cols - col - 1) + (rows - row - 1) + 1 >= min_moves) {
+            continue;
+        }
+        if (seen.count(t * rows * cols + row * cols + col)) {
+            continue;
+        }
+        seen.insert(t * rows * cols + row * cols + col);
+        // Search right and down first since those lead to the goal
+        if (row + 1 < rows && is_safe(row + 1, col, t + 1)) {
+            q.push_front(make_tuple(row + 1, col, t + 1));
+        }
+        if (col + 1 < cols && row >= 0 && is_safe(row, col + 1, t + 1)) {
+            q.push_front(make_tuple(row, col + 1, t + 1));
+        }
+        if (row < 0 || is_safe(row, col, t + 1)) {
+            q.push_back(make_tuple(row, col, t + 1));
+        }
+        if (row - 1 >= 0 && is_safe(row - 1, col, t + 1)) {
+            q.push_back(make_tuple(row - 1, col, t + 1));
+        }
+        if (col - 1 >= 0 && row >= 0 && is_safe(row, col - 1, t + 1)) {
+            q.push_back(make_tuple(row, col - 1, t + 1));
+        }
     }
-    // Search down and right moves first since they lead to the goal
-    if (row + 1 < rows && is_safe(row + 1, col, t + 1)) {
-        min_moves = min(min_moves, dfs_f(row + 1, col, t + 1));
-    }
-    if (col + 1 < cols && row >= 0 && is_safe(row, col + 1, t + 1)) {
-        min_moves = min(min_moves, dfs_f(row, col + 1, t + 1));
-    }
-    if (row - 1 >= 0 && is_safe(row - 1, col, t + 1)) {
-        min_moves = min(min_moves, dfs_f(row - 1, col, t + 1));
-    }
-    if (col - 1 >= 0 && row >= 0 && is_safe(row, col - 1, t + 1)) {
-        min_moves = min(min_moves, dfs_f(row, col - 1, t + 1));
-    }
-    // Is it safe to stay put?
-    if (row < 0 || is_safe(row, col, t + 1)) {
-        min_moves = min(min_moves, dfs_f(row, col, t + 1));
-    }
-    cache[t * rows * cols + row * cols + col] = min_moves;
-    g_min_moves = min(g_min_moves, min_moves);
     return min_moves;
 }
 
-// Depth-first search going backward
-static ll dfs_b(ll row, ll col, ll t)
+static ll search_b(ll start_t)
 {
-    auto iter = cache.find(t * rows * cols + row * cols + col);
-    if (iter != cache.end()) return iter->second;
-    if (row == 0 && col == 0) {
-        return t + 1;
-    }
     ll min_moves = INT64_MAX;
-    // If we already found a better minimum return directly
-    if (t + col + row + 1 >= g_min_moves) {
-        return min_moves;
+    deque<tuple<ll, ll, ll>> q;
+    unordered_set<ll> seen;
+    q.push_back(make_tuple(rows, cols - 1, start_t));
+    while (!q.empty()) {
+        auto [row, col, t] = q.front();
+        q.pop_front();
+        if (row == 0 && col == 0) {
+            min_moves = min(min_moves, t + 1);
+            continue;
+        }
+        if (t + col + row + 1 >= min_moves) {
+            continue;
+        }
+        if (seen.count(t * rows * cols + row * cols + col)) {
+            continue;
+        }
+        seen.insert(t * rows * cols + row * cols + col);
+        // Search left and up first since those lead to the goal
+        if (row - 1 >= 0 && is_safe(row - 1, col, t + 1)) {
+            q.push_front(make_tuple(row - 1, col, t + 1));
+        }
+        if (col - 1 >= 0 && row < rows && is_safe(row, col - 1, t + 1)) {
+            q.push_front(make_tuple(row, col - 1, t + 1));
+        }
+        if (row == rows || is_safe(row, col, t + 1)) {
+            q.push_back(make_tuple(row, col, t + 1));
+        }
+        if (row + 1 < rows && is_safe(row + 1, col, t + 1)) {
+            q.push_back(make_tuple(row + 1, col, t + 1));
+        }
+        if (col + 1 < cols && row < rows && is_safe(row, col + 1, t + 1)) {
+            q.push_back(make_tuple(row, col + 1, t + 1));
+        }
     }
-    // Search left and up moves first since they lead to the goal
-    if (row - 1 >= 0 && is_safe(row - 1, col, t + 1)) {
-        min_moves = min(min_moves, dfs_b(row - 1, col, t + 1));
-    }
-    if (col - 1 >= 0 && row < rows && is_safe(row, col - 1, t + 1)) {
-        min_moves = min(min_moves, dfs_b(row, col - 1, t + 1));
-    }
-    if (row + 1 < rows && is_safe(row + 1, col, t + 1)) {
-        min_moves = min(min_moves, dfs_b(row + 1, col, t + 1));
-    }
-    if (col + 1 < cols && row < rows && is_safe(row, col + 1, t + 1)) {
-        min_moves = min(min_moves, dfs_b(row, col + 1, t + 1));
-    }
-    // Is it safe to stay put?
-    if (row >= rows || is_safe(row, col, t + 1)) {
-        min_moves = min(min_moves, dfs_b(row, col, t + 1));
-    }
-    cache[t * rows * cols + row * cols + col] = min_moves;
-    g_min_moves = min(g_min_moves, min_moves);
     return min_moves;
 }
 
@@ -154,13 +158,9 @@ int main()
     }
 
     // Go forward, backward and forward again
-    ll p1 = dfs_f(-1, 0, 0);
-    cache.clear();
-    g_min_moves = INT64_MAX;
-    ll p2 = dfs_b(rows, cols - 1, p1);
-    cache.clear();
-    g_min_moves = INT64_MAX;
-    p2 = dfs_f(-1, 0, p2);
+    ll p1 = search_f(0);
+    ll p2 = search_b(p1);
+    p2 = search_f(p2);
 
     cout << "Part 1: " << p1 << endl;
     cout << "Part 2: " << p2 << endl;
