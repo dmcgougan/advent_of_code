@@ -82,7 +82,7 @@ static string int_list(const vector<int>& list)
     return s;
 }
 
-// Resursively find value of A that outputs the program itself
+// Recursively find value of A that outputs the program itself
 static bool find_a(ll a, ll b, ll c, const vector<int>& program, int pc, ll& a_out)
 {
     for (int i = 0; i < 8; i++) {
@@ -124,8 +124,14 @@ int main()
     cout << "Part 1: " << int_list(run_program(a, b, c, program)) << endl;
 
     // Part 2
-    // This code assumes the program ends with a branch to the beginning until A is zero
-    // and outputs data based on the 6 lowest bits of A at each iteration.
+    //
+    // Assumptions about the input data:
+    //  * The program contains a single loop ending with a branch to the
+    //    beginning while A is non-zero
+    //  * At every iteration the program outputs a value based on some simple
+    //    hash of the low bits of A
+    //  * At every iteration the program shifts A right by 3 bits
+    //
     assert(find_a(0, b, c, program, program.size() - 1, a));
     cout << "Part 2: " << a << endl;
 
