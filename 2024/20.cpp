@@ -44,30 +44,38 @@ static int num_cheats(const vector<string>& grid,
     }
 
     // Check all valid combinations of cheat starting point and cheat ending point
+    int dist_end = dist[er][ec];
+    int max_steps = dist_end - steps_saved;
     int count = 0;
     for (int cheat_sr = 1; cheat_sr < rows - 1; ++cheat_sr) {
         for (int cheat_sc = 1; cheat_sc < cols - 1; ++cheat_sc) {
-            if (dist[cheat_sr][cheat_sc] == INT_MAX) continue;
+            // Distance from start of maze to cheat starting point
+            int steps;
+            if ((steps = dist[cheat_sr][cheat_sc]) >= max_steps) continue;
 
-            for (int cheat_er = 1; cheat_er < rows - 1; ++cheat_er) {
-                for (int cheat_ec = 1; cheat_ec < cols - 1; ++cheat_ec) {
-                    if (dist[cheat_er][cheat_ec] == INT_MAX) continue;
+            // Check ending points that are within the specified distance of the starting point
+            for (int dr = -cheat_time; dr <= cheat_time; ++dr) {
+                int adr = dr >= 0 ? dr : -dr;
+                for (int dc = -(cheat_time - adr); dc <= cheat_time - adr; ++dc) {
+                    int cheat_er = cheat_sr + dr;
+                    int cheat_ec = cheat_sc + dc;
+
+                    // Check if the cheat ending point is valid
+                    int d;
+                    if (cheat_er < 0 || cheat_er >= rows || cheat_ec < 0 || cheat_ec >= cols ||
+                        (d = dist[cheat_er][cheat_ec]) == INT_MAX)
+                    {
+                        continue;
+                    }
 
                     // Distance to travel between cheat starting point and cheat ending point
-                    int cheat_dist = abs(cheat_sr - cheat_er) + abs(cheat_sc - cheat_ec);
-                    if (cheat_dist > cheat_time) continue;
-
-                    // Distance from start of maze to cheat starting point
-                    int steps = dist[cheat_sr][cheat_sc];
-
-                    // Distance while cheating
-                    steps += cheat_dist;
+                    int s = steps + adr + (dc >= 0 ? dc : -dc);
 
                     // Distance from cheat ending point to end of maze
-                    steps += dist[er][ec] - dist[cheat_er][cheat_ec];
+                    s += dist_end - d;
 
                     // Count the cheat if the number of steps is small enough
-                    if (steps <= dist[er][ec] - steps_saved) count++;
+                    if (s <= max_steps) count++;
                 }
             }
         }
