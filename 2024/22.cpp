@@ -4,8 +4,7 @@
  */
 
 #include <iostream>
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 using namespace std;
 using ll = int64_t;
@@ -21,12 +20,12 @@ static inline unsigned get_next(unsigned n)
 int main()
 {
     ll part1 = 0;
-    unordered_map<uint32_t, int> change_seq_scores;
-    unordered_set<uint32_t> change_seq_used;
+    vector<int> change_seq_scores(1 << 20);
     unsigned n;
     while (cin >> n) {
         // Represent a change sequence as bits within a uint32_t
-        // Each change uses 8 bits of the uint32_t
+        // Each change uses 5 bits of the uint32_t
+        vector<bool> change_seq_used(1 << 20);
         uint32_t change_seq = 0;
         int prev_price;
         int price = n % 10;
@@ -36,28 +35,26 @@ int main()
             n = get_next(n);
             prev_price = price;
             price = n % 10;
-            change_seq = (change_seq << 8) | ((price - prev_price) + 9);
+            change_seq = (change_seq << 5) | ((price - prev_price) + 9);
         }
         for (; i < 2000; i++) {
             n = get_next(n);
             prev_price = price;
             price = n % 10;
-            // Add a new change to the sequence
-            // The oldest one will automatically be shifed out and discarded
-            change_seq = (change_seq << 8) | ((price - prev_price) + 9);
-            if (change_seq_used.count(change_seq)) continue;
-            change_seq_used.insert(change_seq);
+            // Add a new change to the sequence; mask off oldest
+            change_seq = ((change_seq << 5) | ((price - prev_price) + 9)) & 0xfffff;
+            if (change_seq_used[change_seq]) continue;
+            change_seq_used[change_seq] = true;
             // This change sequence is seen for the first time
-            // Add it to the map of scores
+            // Add it to the vector of scores
             change_seq_scores[change_seq] += price;
         }
         part1 += n;
-        change_seq_used.clear();
     }
 
     // Find the highest scoring change sequence
     int part2 = 0;
-    for (auto [change_seq, score] : change_seq_scores) {
+    for (int score : change_seq_scores) {
         part2 = max(part2, score);
     }
 
