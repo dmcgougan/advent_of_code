@@ -4,70 +4,61 @@
  */
 
 #include <iostream>
-#include <string>
-#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 using ll = int64_t;
-using mystr = basic_string<int8_t>;
 
 static inline unsigned get_next(unsigned n)
 {
-    n ^= (n << 6);
-    n &= 0xffffff;
-    n ^= (n >> 5);
-    n &= 0xffffff;
-    n ^= (n << 11);
-    n &= 0xffffff;
+    n = (n ^ (n << 6)) & 0xffffff;
+    n = (n ^ (n >> 5)) & 0xffffff;
+    n = (n ^ (n << 11)) & 0xffffff;
     return n;
 }
 
 int main()
 {
-    // Slow brute force solution that takes about 6 minutes on my computer.
-    // I will revisit this one to come up with a better solution.
-
     ll part1 = 0;
-    vector<pair<mystr, mystr>> seqs;
+    unordered_map<uint32_t, int> change_seq_scores;
+    unordered_set<uint32_t> change_seq_used;
     unsigned n;
     while (cin >> n) {
-        // Precompute price and price change sequences
-        mystr seq;
-        seq.reserve(2000);
-        mystr price_seq;
-        price_seq.reserve(2000);
+        // Represent a change sequence as bits within a uint32_t
+        // Each change uses 8 bits of the uint32_t
+        uint32_t change_seq = 0;
         int prev_price;
         int price = n % 10;
-        for (size_t i = 0; i < 2000; i++) {
-            prev_price = price;
+        size_t i;
+        // Fill up the change sequence
+        for (i = 0; i < 3; i++) {
             n = get_next(n);
+            prev_price = price;
             price = n % 10;
-            seq += (int8_t)(price - prev_price);
-            price_seq += (int8_t)price;
+            change_seq = (change_seq << 8) | ((price - prev_price) + 9);
         }
-        seqs.emplace_back(make_pair(move(seq), move(price_seq)));
+        for (; i < 2000; i++) {
+            n = get_next(n);
+            prev_price = price;
+            price = n % 10;
+            // Add a new change to the sequence
+            // The oldest one will automatically be shifed out and discarded
+            change_seq = (change_seq << 8) | ((price - prev_price) + 9);
+            if (change_seq_used.count(change_seq)) continue;
+            change_seq_used.insert(change_seq);
+            // This change sequence is seen for the first time
+            // Add it to the map of scores
+            change_seq_scores[change_seq] += price;
+        }
         part1 += n;
+        change_seq_used.clear();
     }
 
-    // Loop through all possible change lists
+    // Find the highest scoring change sequence
     int part2 = 0;
-    mystr c(4, 0);
-    for (c[0] = -9; c[0] <= 9; ++c[0]) {
-        for (c[1] = -9; c[1] <= 9; ++c[1]) {
-            for (c[2] = -9; c[2] <= 9; ++c[2]) {
-                for (c[3] = -9; c[3] <= 9; ++c[3]) {
-                    // Find the candidate changes in the precomputed sequence
-                    int count = 0;
-                    for (const auto& [seq, price] : seqs) {
-                        size_t ix = seq.find(c);
-                        if (ix != mystr::npos) {
-                            count += (int)price[ix + 3];
-                        }
-                    }
-                    part2 = max(part2, count);
-                }
-            }
-        }
+    for (auto [change_seq, score] : change_seq_scores) {
+        part2 = max(part2, score);
     }
 
     cout << "Part 1: " << part1 << endl;
