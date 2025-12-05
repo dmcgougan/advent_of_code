@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
         fresh.push_back({from, to});
     }
     while (getline(in, line)) {
-        ingr.push_back(atol(line.c_str()));
+        ingr.push_back(ll(atoll(line.c_str())));
     }
 
     // Solve part 1
