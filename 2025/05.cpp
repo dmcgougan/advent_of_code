@@ -3,87 +3,15 @@
  * Danjel McGougan
  */
 
+#include <algorithm>
 #include <cassert>
-#include <cinttypes>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <list>
 #include <vector>
 
 using namespace std;
-using ll = int64_t;
-
-// Class that holds a set of integers by storing a sequence of ranges
-// (reused from my solution of AoC 2022 day 15)
-class range_set
-{
-public:
-    void insert(ll from, ll to)
-    {
-        assert(from <= to);
-        auto iter = ranges.begin();
-        while (iter != ranges.end()) {
-            auto& p = *iter;
-            if (from < p.first) {
-                if (to < p.first) {
-                    ranges.insert(iter, make_pair(from, to));
-                    break;
-                }
-                if (to <= p.second) {
-                    p.first = from;
-                    break;
-                }
-                iter = ranges.erase(iter);
-                continue;
-            }
-            if (from <= p.second) {
-                if (to <= p.second) {
-                    break;
-                }
-                p.second = to;
-                break;
-            }
-            ++iter;
-        }
-        if (iter == ranges.end()) {
-            ranges.push_back(make_pair(from, to));
-        }
-        merge();
-    }
-
-    ll count() const
-    {
-        ll count = 0;
-        for (auto [from, to] : ranges) {
-            count += to - from + 1;
-        }
-        return count;
-    }
-
-private:
-    void merge()
-    {
-        auto iter = ranges.begin();
-        while (iter != ranges.end() && next(iter, 1) != ranges.end()) {
-            auto& l = *iter;
-            auto& r = *next(iter, 1);
-            assert(l.first < r.second);
-            if (l.second >= r.first) {
-                if (r.second > l.second) {
-                    r.first = l.first;
-                    iter = ranges.erase(iter);
-                    continue;
-                }
-                ranges.erase(next(iter, 1));
-                continue;
-            }
-            ++iter;
-        }
-    }
-
-    list<pair<ll, ll>> ranges;
-};
+using ll = long long;
 
 int main(int argc, char* argv[])
 {
@@ -95,16 +23,15 @@ int main(int argc, char* argv[])
     // Parse input
     vector<pair<ll, ll>> fresh;
     vector<ll> ingr;
-    string line;
-    while (getline(in, line) && !line.empty()) {
+    for (string line; getline(in, line) && !line.empty();) {
         ll from, to;
-        // (portability note: use PRId64 to be portable across Linux/Windows)
-        assert(sscanf(line.c_str(), "%" PRId64 "-%" PRId64, &from, &to) == 2);
+        assert(sscanf(line.c_str(), "%lld-%lld", &from, &to) == 2);
         fresh.push_back({from, to});
     }
-    while (getline(in, line)) {
-        ingr.push_back(ll(atoll(line.c_str())));
+    for (string line; getline(in, line);) {
+        ingr.push_back(atoll(line.c_str()));
     }
+    assert(!fresh.empty() && !ingr.empty());
 
     // Solve part 1
     int part1 = 0;
@@ -120,13 +47,33 @@ int main(int argc, char* argv[])
     }
 
     // Solve part 2
-    ll part2;
+    ll part2 = 0;
     {
-        range_set rs;
+        // Sort intervals in ascending order
+        std::sort(fresh.begin(), fresh.end());
+
+        // Highest number we have accounted for and seen so far
+        ll cur = -1;
         for (auto [from, to] : fresh) {
-            rs.insert(from, to);
+            // from is in sorted order
+            if (from > cur) {
+                // cur is lower than the interval
+                //   *  |------|
+                // Add the whole interval
+                part2 += to - from + 1;
+                cur = to;
+            } else if (to > cur) {
+                // cur is inside the interval
+                //   |---*--|
+                // Add only the part of the interval that is new
+                part2 += to - cur;
+                cur = to;
+            } else {
+                //  cur is higher than the interval
+                //    |------|  *
+                // Already accounted for
+            }
         }
-        part2 = rs.count();
     }
 
     // Output answers
