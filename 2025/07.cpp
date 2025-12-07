@@ -3,11 +3,9 @@
  * Danjel McGougan
  */
 
-#include <array>
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <vector>
 
 using namespace std;
@@ -29,7 +27,8 @@ int main(int argc, char* argv[])
     assert(!grid.empty() && !grid[0].empty());
     int rows = grid.size();
     int cols = grid[0].size();
-    int start = grid[0].find('S');
+    size_t start = grid[0].find('S');
+    assert(start != string::npos);
 
     // Solve part 1
     int part1 = 0;
@@ -37,17 +36,16 @@ int main(int argc, char* argv[])
         vector<string> g = grid;
         auto beam = [&](auto self, int row, int col) -> void {
             while (row < rows && col >= 0 && col < cols) {
-                if (g[row][col] == '.') {
-                    g[row][col] = '|';
-                    ++row;
-                    continue;
-                }
                 if (g[row][col] == '|') break;
                 if (g[row][col] == '^') {
-                    self(self, row, col - 1);
-                    self(self, row, col + 1);
+                    // Split; do the right side recursively
                     ++part1;
-                    break;
+                    self(self, row, col + 1);
+                    --col;
+                } else {
+                    assert(g[row][col] == '.');
+                    g[row][col] = '|';
+                    ++row;
                 }
             }
         };
@@ -57,28 +55,25 @@ int main(int argc, char* argv[])
     // Solve part 2
     ll part2 = 0;
     {
-        map<array<int, 2>, ll> cache;
-        vector<string> g = grid;
+        vector<ll> cache(rows * cols);
         auto beam = [&](auto self, int row, int col) -> ll {
             // The same position always gives the same answer
             // Check if the result is in the cache (memoization)
-            auto it = cache.find({row, col});
-            if (it != cache.end()) return it->second;
+            ll result;
+            if ((result = cache[row * cols + col])) return result;
+            result = 1;
             int r = row;
             int c = col;
-            ll result = 1;
-            while (r < rows && c < cols && c >= 0) {
-                if (g[r][c] == '.') {
-                    ++r;
-                    continue;
-                }
-                if (g[r][c] == '^') {
+            while (r < rows && c >= 0 && c < cols) {
+                if (grid[r][c] == '^') {
                     // Sum of left and right sides
                     result = self(self, r, c - 1) + self(self, r, c + 1);
                     break;
                 }
+                assert(grid[r][c] == '.');
+                ++r;
             }
-            cache[{row, col}] = result;
+            cache[row * cols + col] = result;
             return result;
         };
         part2 = beam(beam, 1, start);
