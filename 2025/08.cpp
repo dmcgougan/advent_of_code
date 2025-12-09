@@ -16,6 +16,51 @@
 using namespace std;
 using ll = long long;
 
+// Disjoint Set Union
+// https://cp-algorithms.com/data_structures/disjoint_set_union.html
+class dsu_t
+{
+public:
+    explicit dsu_t(int n) : parent(n), sz(n, 1), sets(n)
+    {
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+    }
+
+    // Get the representative (root) of the set that x belongs to
+    int find(int x)
+    {
+        if (x == parent[x]) return x;
+        // Flatten the tree while searching
+        return (parent[x] = find(parent[x]));
+    }
+
+    // Merge sets a and b
+    bool merge(int a, int b)
+    {
+        a = find(a);
+        b = find(b);
+        if (a == b) return false;
+        if (sz[a] < sz[b]) std::swap(a, b);
+        parent[b] = a;
+        sz[a] += sz[b];
+        --sets;
+        return true;
+    }
+
+    // Get the size of the set that x belongs to
+    int size(int x) { return sz[find(x)]; }
+
+    // Get the number of disjoint sets
+    int count() const { return sets; }
+
+private:
+    vector<int> parent;
+    vector<int> sz;
+    int sets;
+};
+
 int main(int argc, char* argv[])
 {
     // Get input stream
@@ -38,90 +83,65 @@ int main(int argc, char* argv[])
     int boxes = box.size();
 
     // Common
-
-    // Calculate the square of the distance between all pairs of boxes
-    vector<tuple<ll, int, int>> dist;
-    for (int i = 0; i < boxes; ++i) {
-        for (int j = i + 1; j < boxes; ++j) {
-            ll a = box[i][0] - box[j][0];
-            ll b = box[i][1] - box[j][1];
-            ll c = box[i][2] - box[j][2];
-            ll d = a * a + b * b + c * c;
-            dist.push_back({d, i, j});
+    using pq_t = tuple<ll, int, int>;
+    priority_queue<pq_t, vector<pq_t>, greater<pq_t>> dist;
+    dsu_t dsu(boxes);
+    {
+        // Calculate the square of the distance between all pairs of boxes
+        for (int i = 0; i < boxes; ++i) {
+            for (int j = i + 1; j < boxes; ++j) {
+                ll d0 = box[i][0] - box[j][0];
+                ll d1 = box[i][1] - box[j][1];
+                ll d2 = box[i][2] - box[j][2];
+                // Put the distances in a heap
+                dist.push({d0 * d0 + d1 * d1 + d2 * d2, i, j});
+            }
         }
-    }
 
-    // Sort the distances in ascending order and build adjacency lists
-    // containing the 1000 pairs with shortest distance between them
-    std::sort(dist.begin(), dist.end());
-    vector<vector<int>> adj(boxes);
-    for (int i = 0; i < 1000; ++i) {
-        auto [_, a, b] = dist[i];
-        adj[a].push_back(b);
-        adj[b].push_back(a);
+        // Merge sets connected by the first 1000 shortest distance pairs
+        assert(dist.size() >= 10);
+        int pairs = dist.size() >= 1000 ? 1000 : 10;  // also make it work for the test input
+        for (int p = 0; p < pairs; ++p) {
+            auto [_, a, b] = dist.top();
+            dist.pop();
+            dsu.merge(a, b);
+        }
     }
 
     // Solve part 1
-    int part1;
+    ll part1;
     {
-        // BFS to find connected islands
-        vector<bool> visited(boxes);
-        vector<int> sizes;
+        // Get the circuit sizes
+        priority_queue<int> circuit_sizes;
         for (int i = 0; i < boxes; ++i) {
-            if (visited[i]) continue;
-            int size = 1;
-            queue<int> q;
-            q.push(i);
-            visited[i] = true;
-            while (!q.empty()) {
-                int node = q.front();
-                q.pop();
-                for (int next : adj[node]) {
-                    if (visited[next]) continue;
-                    visited[next] = true;
-                    ++size;
-                    q.push(next);
-                }
-            }
-            sizes.push_back(size);
+            if (dsu.find(i) == i) circuit_sizes.push(dsu.size(i));
         }
 
-        // Sort the island sizes in descending order and compute answer
-        std::sort(sizes.rbegin(), sizes.rend());
-        assert(sizes.size() >= 3);
-        part1 = sizes[0] * sizes[1] * sizes[2];
+        // Compute the answer
+        assert(circuit_sizes.size() >= 3);
+        part1 = 1;
+        for (int i = 0; i < 3; ++i) {
+            part1 *= circuit_sizes.top();
+            circuit_sizes.pop();
+        }
     }
 
     // Solve part 2
     ll part2 = 0;
-    {
-        queue<int> q;
-        for (int p = 1000;; ++p) {
-            // Add another pair to the adjacency lists
-            auto [_, a, b] = dist[p];
-            adj[a].push_back(b);
-            adj[b].push_back(a);
+    for (;;) {
+        // Get next pair
+        assert(!dist.empty());
+        auto [_, a, b] = dist.top();
+        dist.pop();
 
-            // Use BFS to check if the new graph is fully connected
-            vector<bool> visited(boxes);
-            int size = 1;
-            visited[0] = true;
-            q.push(0);
-            while (!q.empty()) {
-                int node = q.front();
-                q.pop();
-                for (int next : adj[node]) {
-                    if (visited[next]) continue;
-                    visited[next] = true;
-                    ++size;
-                    q.push(next);
-                }
-            }
-            if (size == boxes) {
-                // Fully connected; compute answer
-                part2 = ll(box[a][0]) * box[b][0];
-                break;
-            }
+        // Merge the sets
+        dsu.merge(a, b);
+
+        // Check if we are done
+        if (dsu.count() == 1) {
+            // Only one circuit left so we are fully connected
+            part2 = ll(box[a][0]) * box[b][0];
+            break;
         }
     }
 
