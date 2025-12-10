@@ -106,8 +106,7 @@ int main(int argc, char* argv[])
                 return false;
             }
 
-            // Now we need to check if any of the rectangle edges cross an edge of the polygon
-            // Only true crosses need to be checked (crossings inside the boundaries)
+            // Check if any of the polygon edges touch the inside of the rectangle
             p0 = tile[tiles - 1];
             for (int i = 0; i < tiles; ++i) {
                 array<int, 2> p1 = tile[i];
@@ -116,8 +115,8 @@ int main(int argc, char* argv[])
                     int px = p0[0];
                     int py_min = min(p0[1], p1[1]);
                     int py_max = max(p0[1], p1[1]);
-                    if (px > rx_min && px < rx_max && max(ry_min, py_min) < min(ry_max, py_max)) {
-                        // Found a crossing; parts of the rectangle are outside the polygon
+                    if (px > rx_min && px < rx_max && py_max > ry_min && py_min < ry_max) {
+                        // This polygon edge touches the inside of the rectangle
                         return false;
                     }
                 } else {
@@ -125,8 +124,8 @@ int main(int argc, char* argv[])
                     int py = p0[1];
                     int px_min = min(p0[0], p1[0]);
                     int px_max = max(p0[0], p1[0]);
-                    if (py > ry_min && py < ry_max && max(rx_min, px_min) < min(rx_max, px_max)) {
-                        // Found a crossing; parts of the rectangle are outside the polygon
+                    if (py > ry_min && py < ry_max && px_max > rx_min && px_min < rx_max) {
+                        // This polygon edge touches the inside of the rectangle
                         return false;
                     }
                 }
