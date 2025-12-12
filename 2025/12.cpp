@@ -1,13 +1,6 @@
 /*
  * Problem 12, Advent of Code 2025
  * Danjel McGougan
- *
- * This solves it for my input. Not sure if it solves it for other inputs.
- * For me it was just a matter of spotting that one of the shapes had one
- * tile that is never reachable by any other tile. And then just sum up the
- * area used by the specified number of tiles per region (with one added to
- * the special shape) and see if that area is less or equal to the total
- * area of the region.
  */
 
 #include <array>
@@ -57,7 +50,6 @@ int main(int argc, char* argv[])
     }
 
     // Get areas of each shape
-    int part1 = 0;
     array<int, SHAPES> areas;
     for (int i = 0; i < SHAPES; ++i) {
         const vector<string>& shape = shapes[i];
@@ -70,11 +62,8 @@ int main(int argc, char* argv[])
         areas[i] = area;
     }
 
-    // Add one to the special shape that has one tile that is not reachable.
-    // Maybe I need code to detect which tile this is to be generic for other inputs?
-    ++areas[4];
-
     // Check if the sum of shape areas is less or equal to the total area
+    int part1 = 0;
     for (const auto& [size, counts] : regions) {
         int rarea = size[0] * size[1];
         int sarea = 0;
